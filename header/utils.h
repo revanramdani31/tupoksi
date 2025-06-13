@@ -6,6 +6,7 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
+#include "task.h"  // Add this to get TaskStatus type
 
 // Constants
 #define MAX_NAME_LEN 100
@@ -27,7 +28,7 @@ int getSubMenuChoice(int max_option);
 // Utility functions
 void clearBuffer();
 void searchTasksByName(Task* root, const char* searchTerm, int* foundCount, int level);
-void findAndPrintTasksByStatus(Task* root, int status, int* foundCount, int level);
+void findAndPrintTasksByStatus(Task* root, TaskStatus status, int* foundCount, int level);
 char* getInput(const char* prompt, char* buffer, int maxLen);
 int validateDate(const char* date);
 void formatDate(char* dest, const char* src);

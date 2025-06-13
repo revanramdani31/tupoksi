@@ -58,7 +58,7 @@ void searchTasksByName(Task* root, const char* searchTerm, int* foundCount, int 
     }
 }
 
-void findAndPrintTasksByStatus(Task* root, int status, int* foundCount, int level) {
+void findAndPrintTasksByStatus(Task* root, TaskStatus status, int* foundCount, int level) {
     if (!root) return;
 
     if (root->status == status) {

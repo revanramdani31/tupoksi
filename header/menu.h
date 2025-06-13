@@ -11,10 +11,15 @@ void displayProjectMenu();
 void displayTaskMenu();
 void displayReportMenu();
 void displayLogMenu();
+void displayBatchMenu();
+void displayFileMenu();
+
 void handleProjectMenu();
 void handleTaskMenu();
 void handleReportMenu();
 void handleLogMenu();
+void handleBatchMenu();
+void handleFileMenu();
 void handleUndo();
 void runMainMenu();
 
