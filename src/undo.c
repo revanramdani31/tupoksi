@@ -2,12 +2,32 @@
 #include "project.h"
 #include "task.h"
 #include "stack.h"
+#include <stdio.h>
 
 // Global variables
 Stack* undo_stack = NULL;
 
+void pushUndoAction(Stack* s, UndoAction* action) {
+    if (!s || !action) return;
+    push(s, action);
+}
+
+UndoAction* popUndoAction(Stack* s) {
+    if (!s) return NULL;
+    return (UndoAction*)pop(s);
+}
+
+void freeStackAndActions(Stack* s) {
+    if (!s) return;
+    while (!isEmpty(s)) {
+        UndoAction* action = popUndoAction(s);
+        if (action) free(action);
+    }
+    freeStack(s);
+}
+
 void processUndoLastTaskCreation() {
-    if (isStackEmpty(undo_stack)) {
+    if (isEmpty(undo_stack)) {
         printf("Tidak ada aksi yang dapat di-undo.\n");
         return;
     }

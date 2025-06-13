@@ -3,11 +3,10 @@
 
 #include "utils.h"
 
-// LinkedListNode structure
-struct LinkedListNode {
+typedef struct LinkedListNode {
     void* data;
     struct LinkedListNode* next;
-};
+} LinkedListNode;
 
 // Function prototypes
 LinkedListNode* createLinkedListNode(void* data);

@@ -1,74 +1,87 @@
-#include "utils.h"
-#include "task.h"
 #include "project.h"
-#include "linkedlist.h"
-#include "stack.h"
-#include "queue.h"
-#include "undo.h"
-#include "batch.h"
-#include "ileio.h"
+#include "task.h"
 #include "menu.h"
+#include "utils.h"
+#include "undo.h"
+#include "stack.h"
+#include "ileio.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-// Global variables
-extern LinkedListNode* project_list_head;
-extern Stack* undo_stack;
-extern Queue* batch_task_queue;
-extern int id_counter;  // Add external declaration for id_counter
+void freeAllData() {
+    // Free all projects and their tasks
+    for (int i = 0; i < projectCount; i++) {
+        if (projects[i]) {
+            if (projects[i]->rootTasks) {
+                deepFreeTask(projects[i]->rootTasks);
+            }
+            free(projects[i]);
+        }
+    }
+    free(projects);
+    projectCount = 0;
+    projectCapacity = 0;
+}
 
-// String arrays for task status and priority
-extern const char* taskStatusToString[];
-extern const char* taskPriorityToString[];
+void initializeSystem() {
+    // Initialize project array
+    initProjectArray();
+    
+    // Initialize undo stack
+    if (!undo_stack) {
+        undo_stack = createStack();
+        if (!undo_stack) {
+            printf("ERROR: Gagal inisialisasi undo stack.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    // Load existing data if any
+    loadDataFromFile(DATA_FILE);
+}
+
+void cleanupSystem() {
+    // Save data before exit
+    saveDataToFile(DATA_FILE);
+    
+    // Cleanup undo stack
+    if (undo_stack) {
+        freeStackAndActions(undo_stack);
+        undo_stack = NULL;
+    }
+    
+    // Cleanup project array
+    freeProjectArray();
+}
+
+void displayWelcomeMessage() {
+    printf("\n");
+    printf("+================================================+\n");
+    printf("|                                                 |\n");
+    printf("|         SISTEM MANAJEMEN PROYEK DAN TUGAS      |\n");
+    printf("|                                                 |\n");
+    printf("|  Fitur:                                        |\n");
+    printf("|  - Manajemen Proyek dan Tugas                  |\n");
+    printf("|  - Work Breakdown Structure (WBS)              |\n");
+    printf("|  - Pelacakan Status dan Riwayat               |\n");
+    printf("|  - Pencarian dan Pelaporan                     |\n");
+    printf("|                                                 |\n");
+    printf("+================================================+\n\n");
+}
 
 int main() {
-    srand(time(NULL)); 
-    id_counter = 0; // Let generateUniqueId initialize with time
-
-    undo_stack = createStack(MAX_UNDO_ACTIONS);
-    if (!undo_stack) {
-        printf("Gagal menginisialisasi undo stack.\n");
-        return 1;
-    }
+    // Initialize system
+    initializeSystem();
     
-    batch_task_queue = createQueue();
-    if (!batch_task_queue) {
-        printf("Gagal menginisialisasi batch queue.\n");
-        freeStack(undo_stack);
-        return 1;
-    }
+    // Display welcome message
+    displayWelcomeMessage();
     
-    loadDataFromFile(DATA_FILE); 
-
     // Run main menu
     runMainMenu();
     
-    // Cleanup
-    if (undo_stack) {
-        freeStack(undo_stack);
-    }
-    if (batch_task_queue) {
-        freeQueue(batch_task_queue);
-    }
-    
-    // Free all projects and their tasks
-    LinkedListNode* node = project_list_head;
-    while (node) {
-        Project* project = (Project*)node->data;
-        if (project) {
-            LinkedListNode* task_node = project->tasks_head;
-            while (task_node) {
-                Task* task = (Task*)task_node->data;
-                if (task) {
-                    deepFreeTask(task);
-                }
-                task_node = task_node->next;
-            }
-            free(project);
-        }
-        LinkedListNode* temp = node;
-        node = node->next;
-        free(temp->data);
-        free(temp);
-    }
+    // Cleanup before exit
+    cleanupSystem();
     
     return 0;
 }

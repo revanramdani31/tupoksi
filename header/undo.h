@@ -2,29 +2,34 @@
 #define UNDO_H
 
 #include "utils.h"
-#include "stack.h"
+
+#define MAX_ID_LEN 20
 
 // UndoActionType enum
 typedef enum {
-    UNDO_ACTION_NONE,
-    UNDO_TASK_CREATION
+    UNDO_TASK_CREATION,
+    UNDO_TASK_DELETION,
+    UNDO_PROJECT_CREATION,
+    UNDO_PROJECT_DELETION
 } UndoActionType;
 
 // UndoAction structure
-struct UndoAction {
+typedef struct {
     UndoActionType type;
     char taskId[MAX_ID_LEN];
     char projectId[MAX_ID_LEN];
-};
+} UndoAction;
 
-// Undo action types
-#define UNDO_TASK_CREATION 1
+// Forward declarations
+struct Stack;
+typedef struct Stack Stack;
 
 // External declarations
 extern Stack* undo_stack;
 
 // Function prototypes
 void pushUndoAction(Stack* s, UndoAction* action);
+UndoAction* popUndoAction(Stack* s);
 void processUndoLastTaskCreation();
 
 #endif // UNDO_H 
