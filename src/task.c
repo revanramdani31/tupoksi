@@ -22,7 +22,22 @@ static Stack* taskHistoryStack = NULL;
 
 Task* createTaskAndRecordUndo(const char* name, const char* desc, struct Project* project,
                              Task* parentTask, TaskStatus status, const char* dueDate) {
-    if (!project || !name || !desc) return NULL;
+    if (!project || !name || !desc) {
+        printf("Error: Data tugas tidak lengkap.\n");
+        return NULL;
+    }
+
+    // Additional validation for parent task
+    if (parentTask) {
+        if (strcmp(parentTask->projectId, project->projectId) != 0) {
+            printf("Error: Tugas induk harus berada dalam proyek yang sama.\n");
+            return NULL;
+        }
+        if (parentTask->status == TASK_STATUS_DIBATALKAN) {
+            printf("Error: Tidak dapat menambahkan sub-tugas ke tugas yang sudah dibatalkan.\n");
+            return NULL;
+        }
+    }
 
     char new_id[MAX_ID_LEN];
     strncpy(new_id, generateUniqueId("TSK"), MAX_ID_LEN-1);
@@ -33,7 +48,7 @@ Task* createTaskAndRecordUndo(const char* name, const char* desc, struct Project
                                       parent_id, status, dueDate);
 
     if (!new_task) {
-        printf("Gagal membuat task.\n");
+        printf("Error: Gagal membuat tugas baru.\n");
         return NULL;
     }
 
@@ -48,11 +63,22 @@ Task* createTaskAndRecordUndo(const char* name, const char* desc, struct Project
 
     // Record task creation in history
     recordTaskStatusChange(new_task->taskId, TASK_STATUS_BARU, status, "SYSTEM");
-    recordChange("Tugas baru dibuat", "SYSTEM", "TASK_CREATION");
+    
+    // Create descriptive change message
+    char changeMsg[MAX_DESC_LEN];
+    if (parentTask) {
+        snprintf(changeMsg, MAX_DESC_LEN, "Tugas baru '%s' dibuat sebagai sub-tugas dari '%s'",
+                new_task->taskName, parentTask->taskName);
+    } else {
+        snprintf(changeMsg, MAX_DESC_LEN, "Tugas baru '%s' dibuat sebagai tugas utama",
+                new_task->taskName);
+    }
+    recordChange(changeMsg, "SYSTEM", "TASK_CREATION");
 
     // Add to project's task tree
     if (parentTask) {
         addChildTask(parentTask, new_task);
+        printf("Tugas berhasil ditambahkan sebagai sub-tugas dari '%s'.\n", parentTask->taskName);
     } else {
         new_task->parent = NULL;
         if (!project->rootTasks) {
@@ -64,6 +90,7 @@ Task* createTaskAndRecordUndo(const char* name, const char* desc, struct Project
             }
             sibling->nextSibling = new_task;
         }
+        printf("Tugas berhasil ditambahkan sebagai tugas utama.\n");
     }
 
     return new_task;
@@ -162,49 +189,79 @@ void displayWBSFooter() {
 void displayWBSTree(Task* task, int level, int isLastChild) {
     if (!task) return;
 
-    // Print indentation and tree branches
+    // Print indentation and tree branches with decorative ASCII art
     for (int i = 0; i < level - 1; i++) {
-        printf("%s", isLastChild ? "    " : "│   ");
+        printf("%s", isLastChild ? "    " : "|   ");
     }
     
     if (level > 0) {
-        printf("%s", isLastChild ? "└── " : "├── ");
+        printf("%s", isLastChild ? "`-- " : "+-- ");
     }
 
-    // Print task status indicator with legend
-    char statusIndicator;
+    // Print task status indicator with box drawing
+    char* statusSymbol;
     switch (task->status) {
-        case TASK_STATUS_BARU: statusIndicator = 'O'; break;        // O = Open/New
-        case TASK_STATUS_DALAM_PROSES: statusIndicator = 'P'; break; // P = In Progress
-        case TASK_STATUS_SELESAI: statusIndicator = '*'; break;     // * = Complete
-        case TASK_STATUS_DIBATALKAN: statusIndicator = 'X'; break;   // X = Cancelled
-        default: statusIndicator = '?'; break;
+        case TASK_STATUS_BARU:
+            statusSymbol = "[ ]";  // Empty box for new tasks
+            break;
+        case TASK_STATUS_DALAM_PROSES:
+            statusSymbol = "[~]";  // Tilde for in-progress
+            break;
+        case TASK_STATUS_SELESAI:
+            statusSymbol = "[*]";  // Star for completed
+            break;
+        case TASK_STATUS_DIBATALKAN:
+            statusSymbol = "[X]";  // X for cancelled
+            break;
+        default:
+            statusSymbol = "[?]";
+            break;
     }
 
-    // Print task information with better formatting
-    printf("[%c] %-30s", statusIndicator, task->taskName);
-    
-    // Print task ID and due date if exists
-    printf(" [%s]", task->taskId);
+    // Print task information with decorative elements
+    printf("%s %s", statusSymbol, task->taskName);
+    printf(" {%s}", task->taskId);
     if (strlen(task->dueDate) > 0) {
-        printf(" (Due: %s)", task->dueDate);
+        printf(" [Due: %s]", task->dueDate);
     }
     printf("\n");
 
-    // Print task description with proper indentation if exists
+    // Print task description with decorative indentation if exists
     if (strlen(task->description) > 0) {
         for (int i = 0; i < level; i++) {
-            printf("%s", isLastChild ? "    " : "│   ");
+            printf("%s", isLastChild ? "    " : "|   ");
         }
-        printf("%s %s\n", isLastChild ? "    " : "│   ", task->description);
+        printf("|   > %s\n", task->description);
+    }
+
+    // Add decorative connecting lines between parent and children
+    if (task->firstChild) {
+        for (int i = 0; i < level; i++) {
+            printf("%s", isLastChild ? "    " : "|   ");
+        }
+        printf("|   |\n");  // Vertical connector
     }
 
     // Process children
     Task* child = task->firstChild;
     while (child) {
         Task* nextChild = child->nextSibling;
+        
+        // Add a decorative connecting line before each child except the last one
+        if (child != task->firstChild) {
+            for (int i = 0; i < level; i++) {
+                printf("%s", isLastChild ? "    " : "|   ");
+            }
+            printf("|   |\n");  // Vertical connector between siblings
+        }
+        
         displayWBSTree(child, level + 1, nextChild == NULL);
         child = nextChild;
+    }
+
+    // Add decorative spacing after a group of siblings
+    if (level == 0 && !task->nextSibling) {
+        printf("\n");
     }
 }
 
@@ -489,4 +546,19 @@ void analyzeTaskStatusChanges(const char* taskId) {
                taskStatusToString[i], statusCounts[i], percentage);
     }
     printf("----------------------------------------\n");
+}
+
+void countTasksAndStatus(Task* task, int* totalTasks, int* statusCounts) {
+    if (!task) return;
+
+    // Count this task
+    (*totalTasks)++;
+    statusCounts[task->status]++;
+
+    // Count children
+    Task* child = task->firstChild;
+    while (child) {
+        countTasksAndStatus(child, totalTasks, statusCounts);
+        child = child->nextSibling;
+    }
 }

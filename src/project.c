@@ -240,14 +240,37 @@ void listAllProjects() {
 void displayProjectWBS(Project* project) {
     if (!project) return;
 
-    printf("\n+================================================+\n");
-    printf("| Work Breakdown Structure - %s\n", project->projectName);
-    printf("| Project ID: %s\n", project->projectId);
-    printf("+================================================+\n");
-    printf("| Legend:                                         |\n");
-    printf("| O = Baru    P = Dalam Proses    * = Selesai    X = Batal\n");
-    printf("+================================================+\n\n");
+    printf("\n");
+    printf("*=======================================================*\n");
+    printf("||                STRUKTUR RINCIAN KERJA               ||\n");
+    printf("||              (Work Breakdown Structure)             ||\n");
+    printf("*=======================================================*\n");
+    printf("||  Proyek: %-44s||\n", project->projectName);
+    printf("||  ID    : %-44s||\n", project->projectId);
+    printf("*=======================================================*\n");
+    printf("||  Keterangan Status:                                 ||\n");
+    printf("||  [ ] = Baru         [~] = Dalam Proses             ||\n");
+    printf("||  [*] = Selesai      [X] = Dibatalkan              ||\n");
+    printf("*=======================================================*\n");
+    printf("||  Format: [Status] Nama Tugas (ID, Tenggat)         ||\n");
+    printf("*=======================================================*\n\n");
 
+    // Count total tasks and tasks by status
+    int totalTasks = 0;
+    int statusCounts[TASK_STATUS_COUNT] = {0};
+    countTasksAndStatus(project->rootTasks, &totalTasks, statusCounts);
+
+    // Display task statistics with decorative elements
+    printf(".:[ Statistik Tugas ]:..\n");
+    printf("  +----------------------+\n");
+    printf("  | Total Tugas   : %-4d|\n", totalTasks);
+    printf("  | Baru          : %-4d|\n", statusCounts[TASK_STATUS_BARU]);
+    printf("  | Dalam Proses  : %-4d|\n", statusCounts[TASK_STATUS_DALAM_PROSES]);
+    printf("  | Selesai       : %-4d|\n", statusCounts[TASK_STATUS_SELESAI]);
+    printf("  | Dibatalkan    : %-4d|\n", statusCounts[TASK_STATUS_DIBATALKAN]);
+    printf("  +----------------------+\n\n");
+
+    printf(".:[ Struktur Tugas ]:...\n");
     Task* root = project->rootTasks;
     while (root) {
         displayWBSTree(root, 0, root->nextSibling == NULL);

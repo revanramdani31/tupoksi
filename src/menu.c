@@ -190,13 +190,23 @@ void handleTaskMenu() {
                     break;
                 }
 
-                printf("Masukkan ID tugas induk (kosongkan untuk tugas root): ");
+                // Show current task structure first
+                printf("\nStruktur Tugas Saat Ini:\n");
+                displayProjectWBS(project);
+
+                printf("\nMasukkan ID tugas induk (kosongkan untuk tugas root): ");
                 fgets(taskId, MAX_ID_LEN, stdin);
                 taskId[strcspn(taskId, "\n")] = 0;
                 if (strlen(taskId) > 0) {
                     parentTask = findTaskInProjectById(project, taskId);
                     if (!parentTask) {
-                        printf("Tugas induk tidak ditemukan.\n");
+                        printf("Error: Tugas induk dengan ID '%s' tidak ditemukan.\n", taskId);
+                        printf("Pastikan ID tugas induk valid dan ada dalam struktur tugas di atas.\n");
+                        break;
+                    }
+                    // Check if parent task is cancelled
+                    if (parentTask->status == TASK_STATUS_DIBATALKAN) {
+                        printf("Error: Tidak dapat menambahkan sub-tugas ke tugas yang sudah dibatalkan.\n");
                         break;
                     }
                 }
@@ -223,7 +233,7 @@ void handleTaskMenu() {
                 projectId[strcspn(projectId, "\n")] = 0;
                 project = findProjectById(projectId);
                 if (project) {
-                    displayWBSTree(project->rootTasks, 0, 1);
+                    displayProjectWBS(project);
                 } else {
                     printf("Proyek tidak ditemukan.\n");
                 }

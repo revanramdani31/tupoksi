@@ -59,6 +59,7 @@ void displayWBSTree(Task* task, int level, int isLastChild);
 void displayTaskDetails(Task* task);
 void displayTasksByStatus(Task* root, TaskStatus status, int level, int* count);
 void displayTasksBySearchTerm(Task* root, const char* searchTerm, int level, int* count);
+void countTasksAndStatus(Task* task, int* totalTasks, int* statusCounts);
 
 // Task status management
 TaskStatus getTaskStatusFromInput();
