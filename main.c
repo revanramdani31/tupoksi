@@ -58,15 +58,15 @@ void cleanupSystem() {
 void displayWelcomeMessage() {
     printf("\n");
     printf("+================================================+\n");
-    printf("|                                                 |\n");
+    printf("|                                                |\n");
     printf("|         SISTEM MANAJEMEN PROYEK DAN TUGAS      |\n");
-    printf("|                                                 |\n");
+    printf("|                                                |\n");
     printf("|  Fitur:                                        |\n");
     printf("|  - Manajemen Proyek dan Tugas                  |\n");
     printf("|  - Work Breakdown Structure (WBS)              |\n");
-    printf("|  - Pelacakan Status dan Riwayat               |\n");
+    printf("|  - Pelacakan Status dan Riwayat                |\n");
     printf("|  - Pencarian dan Pelaporan                     |\n");
-    printf("|                                                 |\n");
+    printf("|                                                |\n");
     printf("+================================================+\n\n");
 }
 

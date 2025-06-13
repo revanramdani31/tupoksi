@@ -30,14 +30,28 @@ void processBatchOperation(Project* project, BatchOperation* operation) {
         return;
     }
 
+    // Add confirmation based on operation type
+    char confirmMsg[MAX_DESC_LEN];
     switch (operation->type) {
         case BATCH_DELETE:
+            snprintf(confirmMsg, MAX_DESC_LEN, "Anda yakin ingin menghapus tugas '%s'?", task->taskName);
+            if (!getConfirmation(confirmMsg)) {
+                printf("Penghapusan tugas dibatalkan.\n");
+                return;
+            }
             printf("Menghapus tugas: %s\n", task->taskName);
             deleteTask(project, task->taskId, 0);
             break;
 
         case BATCH_STATUS_CHANGE: {
             TaskStatus oldStatus = task->status;
+            snprintf(confirmMsg, MAX_DESC_LEN, "Anda yakin ingin mengubah status tugas '%s' dari %s ke %s?",
+                    task->taskName, taskStatusToString[oldStatus], 
+                    taskStatusToString[operation->data.statusChange.newStatus]);
+            if (!getConfirmation(confirmMsg)) {
+                printf("Perubahan status dibatalkan.\n");
+                return;
+            }
             task->status = operation->data.statusChange.newStatus;
             printf("Mengubah status tugas '%s' dari %s ke %s\n",
                    task->taskName,
@@ -48,6 +62,11 @@ void processBatchOperation(Project* project, BatchOperation* operation) {
         }
 
         case BATCH_EDIT:
+            snprintf(confirmMsg, MAX_DESC_LEN, "Anda yakin ingin mengubah detail tugas '%s'?", task->taskName);
+            if (!getConfirmation(confirmMsg)) {
+                printf("Perubahan detail dibatalkan.\n");
+                return;
+            }
             if (strlen(operation->data.editItem.taskName) > 0) {
                 strncpy(task->taskName, operation->data.editItem.taskName, MAX_NAME_LEN - 1);
             }

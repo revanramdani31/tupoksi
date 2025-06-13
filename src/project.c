@@ -240,16 +240,20 @@ void listAllProjects() {
 void displayProjectWBS(Project* project) {
     if (!project) return;
 
-    printf("\nWork Breakdown Structure - %s [%s]:\n",
-           project->projectName, project->projectId);
-    printf("----------------------------------------\n");
+    printf("\n+================================================+\n");
+    printf("| Work Breakdown Structure - %s\n", project->projectName);
+    printf("| Project ID: %s\n", project->projectId);
+    printf("+================================================+\n");
+    printf("| Legend:                                         |\n");
+    printf("| O = Baru    P = Dalam Proses    * = Selesai    X = Batal\n");
+    printf("+================================================+\n\n");
 
     Task* root = project->rootTasks;
     while (root) {
         displayWBSTree(root, 0, root->nextSibling == NULL);
         root = root->nextSibling;
     }
-    printf("----------------------------------------\n");
+    printf("\n");
 }
 
 void displayUpcomingTasks(Project* project) {
@@ -344,24 +348,36 @@ void recordChange(const char* description, const char* userId, const char* chang
         }
     }
 
-    // Create change record
-    char timestamp[DATE_LEN];
+    // Create change record with more details
     time_t now = time(NULL);
-    strftime(timestamp, DATE_LEN, "%Y-%m-%d", localtime(&now));
+    struct tm* timeinfo = localtime(&now);
+    char timestamp[DATE_LEN];
+    strftime(timestamp, DATE_LEN, "%Y-%m-%d", timeinfo);
 
-    // Format the change record
-    char record[MAX_DESC_LEN];
-    snprintf(record, MAX_DESC_LEN, "%s | %s | %s | %s",
-             timestamp, changeType, description, userId);
+    // Format the change record with more structured data
+    ChangeLog* log = (ChangeLog*)malloc(sizeof(ChangeLog));
+    if (!log) {
+        printf("ERROR: Gagal alokasi memori untuk log.\n");
+        return;
+    }
+
+    strncpy(log->changeId, generateUniqueId("CHG"), MAX_ID_LEN - 1);
+    strncpy(log->description, description, MAX_DESC_LEN - 1);
+    strncpy(log->timestamp, timestamp, DATE_LEN - 1);
+    strncpy(log->userId, userId, MAX_ID_LEN - 1);
+    strncpy(log->changeType, changeType, MAX_NAME_LEN - 1);
 
     // Push to stack
     UndoAction* action = (UndoAction*)malloc(sizeof(UndoAction));
     if (action) {
         action->type = UNDO_TASK_CREATION; // Use any type, we only care about the record
-        strncpy(action->taskId, record, MAX_ID_LEN - 1);
-        action->taskId[MAX_ID_LEN - 1] = '\0';
+        snprintf(action->taskId, MAX_ID_LEN, "%s|%s|%s|%s|%s",
+                log->changeId, log->timestamp, log->changeType,
+                log->description, log->userId);
         pushUndoAction(changeHistoryStack, action);
     }
+
+    free(log);
 }
 
 void displayChangeLog() {
@@ -371,9 +387,10 @@ void displayChangeLog() {
     }
 
     printf("\nLog Perubahan:\n");
-    printf("----------------------------------------\n");
-    printf("Tanggal\t\tTipe\t\tDeskripsi\t\tUser\n");
-    printf("----------------------------------------\n");
+    printf("+=======================================================================+\n");
+    printf("| %-10s | %-10s | %-15s | %-30s | %-10s |\n",
+           "ID", "Tanggal", "Tipe", "Deskripsi", "User");
+    printf("+=======================================================================+\n");
 
     Stack* tempStack = createStack();
     if (!tempStack) return;
@@ -381,7 +398,12 @@ void displayChangeLog() {
     while (!isEmpty(changeHistoryStack)) {
         UndoAction* action = popUndoAction(changeHistoryStack);
         if (action) {
-            printf("%s\n", action->taskId);
+            char id[MAX_ID_LEN], date[DATE_LEN], type[MAX_NAME_LEN], 
+                 desc[MAX_DESC_LEN], user[MAX_ID_LEN];
+            sscanf(action->taskId, "%[^|]|%[^|]|%[^|]|%[^|]|%s",
+                   id, date, type, desc, user);
+            printf("| %-10s | %-10s | %-15s | %-30s | %-10s |\n",
+                   id, date, type, desc, user);
             pushUndoAction(tempStack, action);
         }
     }
@@ -392,7 +414,7 @@ void displayChangeLog() {
     }
 
     freeStack(tempStack);
-    printf("----------------------------------------\n");
+    printf("+=======================================================================+\n");
 }
 
 void searchChangeLog(const char* searchTerm) {

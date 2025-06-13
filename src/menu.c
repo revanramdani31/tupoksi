@@ -11,71 +11,99 @@ extern Stack* undo_stack;
 extern const char* taskStatusToString[];
 
 void displayMainMenu() {
-    printf("\n=== MENU UTAMA ===\n");
-    printf("1. Proyek\n");
-    printf("2. Tugas\n");
-    printf("3. Laporan\n");
-    printf("4. Batch\n");
-    printf("5. File\n");
-    printf("6. Logs\n");
-    printf("0. Keluar\n");
+    printf("\n");
+    printf("+================================================+\n");
+    printf("|              MENU UTAMA SISTEM                  |\n");
+    printf("+================================================+\n");
+    printf("| 1. Proyek                                       |\n");
+    printf("| 2. Tugas                                        |\n");
+    printf("| 3. Laporan                                      |\n");
+    printf("| 4. Batch                                        |\n");
+    printf("| 5. File                                         |\n");
+    printf("| 6. Logs                                         |\n");
+    printf("| 0. Keluar                                       |\n");
+    printf("+================================================+\n");
     printf("Pilihan: ");
 }
 
 void displayProjectMenu() {
-    printf("\n=== MENU PROYEK ===\n");
-    printf("1. Buat Proyek Baru\n");
-    printf("2. Lihat Semua Proyek\n");
-    printf("3. Edit Proyek\n");
-    printf("4. Hapus Proyek\n");
-    printf("0. Kembali\n");
+    printf("\n");
+    printf("+================================================+\n");
+    printf("|                 MENU PROYEK                     |\n");
+    printf("+================================================+\n");
+    printf("| 1. Buat Proyek Baru                            |\n");
+    printf("| 2. Lihat Semua Proyek                          |\n");
+    printf("| 3. Edit Proyek                                 |\n");
+    printf("| 4. Hapus Proyek                                |\n");
+    printf("| 0. Kembali                                     |\n");
+    printf("+================================================+\n");
     printf("Pilihan: ");
 }
 
 void displayTaskMenu() {
-    printf("\n=== MENU TUGAS ===\n");
-    printf("1. Buat Tugas Baru\n");
-    printf("2. Lihat Struktur Tugas\n");
-    printf("3. Edit Tugas\n");
-    printf("4. Hapus Tugas\n");
-    printf("5. Cari Tugas\n");
-    printf("0. Kembali\n");
+    printf("\n");
+    printf("+================================================+\n");
+    printf("|                 MENU TUGAS                      |\n");
+    printf("+================================================+\n");
+    printf("| 1. Buat Tugas Baru                             |\n");
+    printf("| 2. Lihat Struktur Tugas (WBS)                  |\n");
+    printf("| 3. Edit Tugas                                  |\n");
+    printf("| 4. Hapus Tugas                                 |\n");
+    printf("| 5. Cari Tugas                                  |\n");
+    printf("| 0. Kembali                                     |\n");
+    printf("+================================================+\n");
     printf("Pilihan: ");
 }
 
 void displayReportMenu() {
-    printf("\n=== MENU LAPORAN ===\n");
-    printf("1. Lihat Tugas Berdasarkan Status\n");
-    printf("2. Lihat Tugas yang Akan Datang\n");
-    printf("0. Kembali\n");
+    printf("\n");
+    printf("+================================================+\n");
+    printf("|                MENU LAPORAN                     |\n");
+    printf("+================================================+\n");
+    printf("| 1. Lihat Tugas Berdasarkan Status              |\n");
+    printf("| 2. Lihat Tugas yang Akan Datang                |\n");
+    printf("| 0. Kembali                                     |\n");
+    printf("+================================================+\n");
     printf("Pilihan: ");
 }
 
 void displayLogMenu() {
-    printf("\n=== MENU LOGS ===\n");
-    printf("1. Lihat Riwayat Tugas\n");
-    printf("2. Analisis Status Tugas\n");
-    printf("3. Lihat Log Perubahan\n");
-    printf("4. Cari Log\n");
-    printf("5. Export Log ke CSV\n");
-    printf("0. Kembali\n");
+    printf("\n");
+    printf("+================================================+\n");
+    printf("|                  MENU LOGS                      |\n");
+    printf("+================================================+\n");
+    printf("| 1. Lihat Riwayat Tugas                         |\n");
+    printf("| 2. Analisis Status Tugas                       |\n");
+    printf("| 3. Lihat Log Perubahan                         |\n");
+    printf("| 4. Cari Log                                    |\n");
+    printf("| 5. Export Log ke CSV                           |\n");
+    printf("| 0. Kembali                                     |\n");
+    printf("+================================================+\n");
     printf("Pilihan: ");
 }
 
 void displayBatchMenu() {
-    printf("\n=== MENU BATCH ===\n");
-    printf("1. Batch Hapus Tugas\n");
-    printf("2. Batch Ubah Status\n");
-    printf("3. Batch Edit Tugas\n");
-    printf("0. Kembali\n");
+    printf("\n");
+    printf("+================================================+\n");
+    printf("|                 MENU BATCH                      |\n");
+    printf("+================================================+\n");
+    printf("| 1. Batch Hapus Tugas                           |\n");
+    printf("| 2. Batch Ubah Status                           |\n");
+    printf("| 3. Batch Edit Tugas                            |\n");
+    printf("| 0. Kembali                                     |\n");
+    printf("+================================================+\n");
     printf("Pilihan: ");
 }
 
 void displayFileMenu() {
-    printf("\n=== MENU FILE ===\n");
-    printf("1. Simpan Data\n");
-    printf("2. Muat Data\n");
-    printf("0. Kembali\n");
+    printf("\n");
+    printf("+================================================+\n");
+    printf("|                 MENU FILE                       |\n");
+    printf("+================================================+\n");
+    printf("| 1. Simpan Data                                 |\n");
+    printf("| 2. Muat Data                                   |\n");
+    printf("| 0. Kembali                                     |\n");
+    printf("+================================================+\n");
     printf("Pilihan: ");
 }
 

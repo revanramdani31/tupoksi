@@ -14,7 +14,9 @@
 #define DATE_LEN 11
 #define MAX_LINE_LEN 1024
 #define MAX_UNDO_ACTIONS 100
-#define DATA_FILE "project_data.txt"
+#define DATA_DIR "data/"
+#define DATA_FILE DATA_DIR "project_data.txt"
+#define LOG_FILE DATA_DIR "change_log.csv"
 #define MAX_ID_LEN 20
 
 // Forward declarations

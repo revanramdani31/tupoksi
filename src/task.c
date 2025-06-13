@@ -164,42 +164,39 @@ void displayWBSTree(Task* task, int level, int isLastChild) {
 
     // Print indentation and tree branches
     for (int i = 0; i < level - 1; i++) {
-        printf("|   ");
+        printf("%s", isLastChild ? "    " : "│   ");
     }
     
     if (level > 0) {
-        if (isLastChild) {
-            printf("`-- ");
-        } else {
-            printf("|-- ");
-        }
+        printf("%s", isLastChild ? "└── " : "├── ");
     }
 
-    // Print task status indicator
+    // Print task status indicator with legend
     char statusIndicator;
     switch (task->status) {
-        case TASK_STATUS_BARU: statusIndicator = 'O'; break;
-        case TASK_STATUS_DALAM_PROSES: statusIndicator = 'P'; break;
-        case TASK_STATUS_SELESAI: statusIndicator = 'X'; break;
-        case TASK_STATUS_DIBATALKAN: statusIndicator = '-'; break;
+        case TASK_STATUS_BARU: statusIndicator = 'O'; break;        // O = Open/New
+        case TASK_STATUS_DALAM_PROSES: statusIndicator = 'P'; break; // P = In Progress
+        case TASK_STATUS_SELESAI: statusIndicator = '*'; break;     // * = Complete
+        case TASK_STATUS_DIBATALKAN: statusIndicator = 'X'; break;   // X = Cancelled
         default: statusIndicator = '?'; break;
     }
 
-    // Print task information
-    printf(" %c %s", statusIndicator, task->taskName);
+    // Print task information with better formatting
+    printf("[%c] %-30s", statusIndicator, task->taskName);
     
-    // Print additional task details
+    // Print task ID and due date if exists
+    printf(" [%s]", task->taskId);
     if (strlen(task->dueDate) > 0) {
         printf(" (Due: %s)", task->dueDate);
     }
-    printf(" [%s]\n", task->taskId);
+    printf("\n");
 
-    // Print task description with proper indentation
+    // Print task description with proper indentation if exists
     if (strlen(task->description) > 0) {
         for (int i = 0; i < level; i++) {
-            printf("|   ");
+            printf("%s", isLastChild ? "    " : "│   ");
         }
-        printf("    `- %s\n", task->description);
+        printf("%s %s\n", isLastChild ? "    " : "│   ", task->description);
     }
 
     // Process children
@@ -208,14 +205,6 @@ void displayWBSTree(Task* task, int level, int isLastChild) {
         Task* nextChild = child->nextSibling;
         displayWBSTree(child, level + 1, nextChild == NULL);
         child = nextChild;
-    }
-
-    // Add spacing between siblings for better readability
-    if (!isLastChild && level > 0) {
-        for (int i = 0; i < level; i++) {
-            printf("|   ");
-        }
-        printf("\n");
     }
 }
 

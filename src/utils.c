@@ -73,4 +73,11 @@ void findAndPrintTasksByStatus(Task* root, TaskStatus status, int* foundCount, i
         findAndPrintTasksByStatus(child, status, foundCount, level + 1);
         child = child->nextSibling;
     }
+}
+
+int getConfirmation(const char* message) {
+    char input[10];
+    printf("\n%s (y/n): ", message);
+    fgets(input, sizeof(input), stdin);
+    return (input[0] == 'y' || input[0] == 'Y');
 } 
