@@ -89,15 +89,25 @@ void processBatchDeleteTasks(Project* project) {
 
     initBatchQueue();
 
-    printf("Masukkan ID tugas yang ingin dihapus (ketik 'done' untuk selesai):\n");
+    printf("\n=== BATCH DELETE TASKS ===\n");
+    printf("Masukkan ID tugas yang ingin dihapus.\n");
+    printf("Ketik 'done' untuk selesai dan memproses penghapusan.\n");
+    printf("Ketik 'cancel' untuk membatalkan operasi.\n\n");
     displayProjectWBS(project);
 
     char input[MAX_ID_LEN];
     while (1) {
-        printf("ID Tugas: ");
+        printf("\n MASUKAN ID Tugas / (ketik 'done' untuk selesai, 'cancel' untuk batal): ");
         fgets(input, MAX_ID_LEN, stdin);
         input[strcspn(input, "\n")] = 0;
+        
         if (strcmp(input, "done") == 0) break;
+        if (strcmp(input, "cancel") == 0) {
+            printf("Operasi batch dibatalkan.\n");
+            freeQueue(batch_task_queue);
+            batch_task_queue = NULL;
+            return;
+        }
 
         Task* task = findTaskInProjectById(project, input);
         if (task) {
@@ -146,15 +156,25 @@ void processBatchStatusChange(Project* project) {
 
     initBatchQueue();
 
-    printf("Masukkan ID tugas dan status baru (ketik 'done' untuk selesai):\n");
+    printf("\n=== BATCH STATUS CHANGE ===\n");
+    printf("Masukkan ID tugas dan status baru.\n");
+    printf("Ketik 'done' untuk selesai dan memproses perubahan.\n");
+    printf("Ketik 'cancel' untuk membatalkan operasi.\n\n");
     displayProjectWBS(project);
 
     char input[MAX_ID_LEN];
     while (1) {
-        printf("ID Tugas (atau 'done'): ");
+        printf("\nMASUKAN ID Tugas / (ketik 'done' untuk selesai, 'cancel' untuk batal): ");
         fgets(input, MAX_ID_LEN, stdin);
         input[strcspn(input, "\n")] = 0;
+        
         if (strcmp(input, "done") == 0) break;
+        if (strcmp(input, "cancel") == 0) {
+            printf("Operasi batch dibatalkan.\n");
+            freeQueue(batch_task_queue);
+            batch_task_queue = NULL;
+            return;
+        }
 
         Task* task = findTaskInProjectById(project, input);
         if (task) {
@@ -207,16 +227,26 @@ void processBatchEdit(Project* project) {
 
     initBatchQueue();
 
-    printf("Masukkan ID tugas untuk edit (ketik 'done' untuk selesai):\n");
+    printf("\n=== BATCH EDIT TASKS ===\n");
+    printf("Masukkan ID tugas untuk edit.\n");
+    printf("Ketik 'done' untuk selesai dan memproses perubahan.\n");
+    printf("Ketik 'cancel' untuk membatalkan operasi.\n\n");
     displayProjectWBS(project);
 
     char input[MAX_ID_LEN];
     char buffer[MAX_DESC_LEN];
     while (1) {
-        printf("ID Tugas (atau 'done'): ");
+        printf("\nID Tugas (ketik 'done' untuk selesai, 'cancel' untuk batal): ");
         fgets(input, MAX_ID_LEN, stdin);
         input[strcspn(input, "\n")] = 0;
+        
         if (strcmp(input, "done") == 0) break;
+        if (strcmp(input, "cancel") == 0) {
+            printf("Operasi batch dibatalkan.\n");
+            freeQueue(batch_task_queue);
+            batch_task_queue = NULL;
+            return;
+        }
 
         Task* task = findTaskInProjectById(project, input);
         if (task) {
@@ -251,13 +281,13 @@ void processBatchEdit(Project* project) {
     }
 
     if (isQueueEmpty(batch_task_queue)) {
-        printf("Tidak ada edit untuk diproses.\n");
+        printf("Tidak ada perubahan untuk diproses.\n");
         freeQueue(batch_task_queue);
         batch_task_queue = NULL;
         return;
     }
 
-    printf("\nMemproses edit batch...\n");
+    printf("\nMemproses perubahan batch...\n");
     int count = 0;
     while (!isQueueEmpty(batch_task_queue)) {
         BatchOperation* operation = (BatchOperation*)dequeue(batch_task_queue);
@@ -267,7 +297,7 @@ void processBatchEdit(Project* project) {
             count++;
         }
     }
-    printf("%d edit berhasil diproses.\n", count);
+    printf("%d perubahan berhasil diproses.\n", count);
 
     freeQueue(batch_task_queue);
     batch_task_queue = NULL;
