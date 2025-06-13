@@ -36,9 +36,6 @@ void initializeSystem() {
             exit(EXIT_FAILURE);
         }
     }
-    
-    // Load existing data if any
-    loadDataFromFile(DATA_FILE);
 }
 
 void cleanupSystem() {

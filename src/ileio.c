@@ -26,9 +26,12 @@ void saveTasksOfProject(FILE* file_ptr, Task* task) {
 }
 
 void saveDataToFile(const char* filename) {
-    FILE* fp = fopen(filename, "w");
+    char filepath[256];
+    snprintf(filepath, sizeof(filepath), "data/%s", filename);
+    
+    FILE* fp = fopen(filepath, "w");
     if (!fp) {
-        printf("ERROR: Gagal buka file '%s' untuk simpan.\n", filename);
+        printf("ERROR: Gagal buka file '%s' untuk simpan.\n", filepath);
         return;
     }
     
@@ -45,7 +48,7 @@ void saveDataToFile(const char* filename) {
     }
     
     fclose(fp);
-    printf("Data disimpan ke %s.\n", filename);
+    printf("Data disimpan ke %s.\n", filepath);
 }
 
 void buildTaskHierarchyForProject(Project* project, Task** all_tasks, int task_count) {
@@ -105,9 +108,12 @@ void buildTaskHierarchyForProject(Project* project, Task** all_tasks, int task_c
 }
 
 void loadDataFromFile(const char* filename) {
-    FILE* fp = fopen(filename, "r");
+    char filepath[256];
+    snprintf(filepath, sizeof(filepath), "data/%s", filename);
+    
+    FILE* fp = fopen(filepath, "r");
     if (!fp) {
-        printf("INFO: File '%s' tidak ditemukan.\n", filename);
+        printf("INFO: File '%s' tidak ditemukan.\n", filepath);
         return;
     }
     
@@ -151,7 +157,7 @@ void loadDataFromFile(const char* filename) {
                     printf("ERROR: Gagal load proyek: ID=%s.\n", id);
                 }
             }
-        } else if (strcmp(type, "T") == 0 && current_loading_project) {
+        } else if (strcmp(type, "T") == 0) {
             char* task_id_str = strtok(NULL, ",");
             char* project_id_str = strtok(NULL, ",");
             char* parent_task_id_str = strtok(NULL, ",");
@@ -204,5 +210,5 @@ void loadDataFromFile(const char* filename) {
     // Cleanup
     free(temp_tasks);
     fclose(fp);
-    printf("Data dimuat dari %s.\n", filename);
+    printf("Data dimuat dari %s.\n", filepath);
 } 
