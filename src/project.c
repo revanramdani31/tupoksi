@@ -105,7 +105,7 @@ Project* createProject(const char* name) {
     if (!name) return NULL;
 
     char new_id[MAX_ID_LEN];
-    strncpy(new_id, generateUniqueId("PRJ"), MAX_ID_LEN-1);
+    strncpy(new_id, generateProjectId("PRJ"), MAX_ID_LEN-1);
     new_id[MAX_ID_LEN-1] = '\0';
 
     Project* newProject = createProjectInternal(new_id, name);
@@ -384,7 +384,7 @@ void recordChange(const char* description, const char* userId, const char* chang
         return;
     }
 
-    strncpy(log->changeId, generateUniqueId("CHG"), MAX_ID_LEN - 1);
+    strncpy(log->changeId, generateChangeId("CHG"), MAX_ID_LEN - 1);
     strncpy(log->description, description, MAX_DESC_LEN - 1);
     strncpy(log->timestamp, timestamp, DATE_LEN - 1);
     strncpy(log->userId, userId, MAX_ID_LEN - 1);

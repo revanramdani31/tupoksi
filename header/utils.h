@@ -32,6 +32,9 @@ void clearBuffer();
 void searchTasksByName(Task* root, const char* searchTerm, int* foundCount, int level);
 void findAndPrintTasksByStatus(Task* root, TaskStatus status, int* foundCount, int level);
 char* getInput(const char* prompt, char* buffer, int maxLen);
+char* generateProjectId();
+char* generateTaskId();
+char* generateChangeId();
 int validateDate(const char* date);
 void formatDate(char* dest, const char* src);
 

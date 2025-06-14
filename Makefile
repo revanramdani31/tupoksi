@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -g -Iheader
 SRCS = main.c utils.c linkedlist.c stack.c queue.c task.c project.c undo.c batch.c ileio.c menu.c
 OBJS = $(SRCS:.c=.o)
 TARGET = proyek

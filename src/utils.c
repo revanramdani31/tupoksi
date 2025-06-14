@@ -6,24 +6,31 @@
 #include "task.h"
 
 // Global variables
-long id_counter = 0;
+long project_counter = 0;
+long task_counter = 0;
+long change_counter = 0;
 
 void clearBuffer() {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-char* generateUniqueId(const char* prefix) {
-    static long simple_counter_for_id = 0;
-    static char id_buffer[MAX_ID_LEN];
-    
-    if (id_counter == 0 && simple_counter_for_id == 0) {
-        id_counter = (long)time(NULL);
-    }
-    
-    simple_counter_for_id++;
-    snprintf(id_buffer, MAX_ID_LEN, "%s%ld", prefix, simple_counter_for_id);
-    return id_buffer;
+char* generateProjectId() {
+    static char buffer[MAX_ID_LEN];
+    snprintf(buffer, MAX_ID_LEN, "PRJ%ld", ++project_counter);
+    return buffer;
+}
+
+char* generateTaskId() {
+    static char buffer[MAX_ID_LEN];
+    snprintf(buffer, MAX_ID_LEN, "TSK%ld", ++task_counter);
+    return buffer;
+}
+
+char* generateChangeId() {
+    static char buffer[MAX_ID_LEN];
+    snprintf(buffer, MAX_ID_LEN, "CHG%ld", ++change_counter);
+    return buffer;
 }
 
 int getSubMenuChoice(int max_option) {

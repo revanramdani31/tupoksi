@@ -40,7 +40,7 @@ Task* createTaskAndRecordUndo(const char* name, const char* desc, struct Project
     }
 
     char new_id[MAX_ID_LEN];
-    strncpy(new_id, generateUniqueId("TSK"), MAX_ID_LEN-1);
+    strncpy(new_id, generateTaskId("TSK"), MAX_ID_LEN-1);
     new_id[MAX_ID_LEN-1] = '\0';
 
     const char* parent_id = (parentTask != NULL) ? parentTask->taskId : "";
