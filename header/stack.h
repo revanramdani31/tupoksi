@@ -14,7 +14,6 @@ typedef struct Stack {
     int size;
 } Stack;
 
-// Basic stack operations
 Stack* createStack();
 void push(Stack* s, void* data);
 void* pop(Stack* s);
@@ -22,7 +21,6 @@ void* peek(Stack* s);
 int isEmpty(Stack* s);
 void freeStack(Stack* s);
 
-// Undo-specific operations
 void pushUndoAction(Stack* s, UndoAction* action);
 UndoAction* popUndoAction(Stack* s);
 void freeStackAndActions(Stack* s);

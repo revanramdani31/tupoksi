@@ -6,9 +6,8 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include "task.h"  // Add this to get TaskStatus type
+#include "task.h" 
 
-// Constants
 #define MAX_NAME_LEN 100
 #define MAX_DESC_LEN 500
 #define DATE_LEN 11
@@ -19,15 +18,13 @@
 #define LOG_FILE DATA_DIR "change_log.csv"
 #define MAX_ID_LEN 20
 
-// Forward declarations
 typedef struct Task Task;
 typedef struct Project Project;
 
-// Function prototypes
 char* generateUniqueId(const char* prefix);
 int getSubMenuChoice(int max_option);
+int getConfirmation(const char* message);
 
-// Utility functions
 void clearBuffer();
 void searchTasksByName(Task* root, const char* searchTerm, int* foundCount, int level);
 void findAndPrintTasksByStatus(Task* root, TaskStatus status, int* foundCount, int level);
@@ -38,4 +35,4 @@ char* generateChangeId();
 int validateDate(const char* date);
 void formatDate(char* dest, const char* src);
 
-#endif // UTILS_H 
+#endif 

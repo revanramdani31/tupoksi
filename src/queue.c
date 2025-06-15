@@ -41,6 +41,12 @@ void* dequeue(Queue* q) {
     q->size--;
     return data;
 }
+void* peekQueue(Queue* q) {
+    if (!q || !q->front) {
+        return NULL; 
+    }
+    return q->front->data;
+}
 
 int isQueueEmpty(Queue* q) {
     return !q || !q->front;

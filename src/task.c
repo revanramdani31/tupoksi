@@ -7,6 +7,7 @@
 #include "project.h"
 #include "utils.h"
 #include "undo.h"
+#include "queue.h"
 
 extern Stack* undo_stack;
 
@@ -19,6 +20,7 @@ const char* taskStatusToString[] = {
 
 // Global stack for task history
 static Stack* taskHistoryStack = NULL;
+Queue* taskCompletionQueue = NULL;
 
 Task* createTaskAndRecordUndo(const char* name, const char* desc, struct Project* project,
                              Task* parentTask, TaskStatus status, const char* dueDate) {
@@ -91,6 +93,11 @@ Task* createTaskAndRecordUndo(const char* name, const char* desc, struct Project
             sibling->nextSibling = new_task;
         }
         printf("Tugas berhasil ditambahkan sebagai tugas utama.\n");
+    }
+        if (new_task && new_task->firstChild == NULL) {
+        // Jika ya, masukkan pointer tugas ini ke dalam antrian penyelesaian.
+        enqueue(taskCompletionQueue, new_task);
+        printf("Info: Tugas '%s' adalah leaf node dan ditambahkan ke antrian penyelesaian.\n", new_task->taskName);
     }
 
     return new_task;
@@ -323,6 +330,7 @@ Task* findTaskInProjectById(Project* project, const char* taskId) {
     return findTaskById(project->rootTasks, taskId);
 }
 
+
 void deleteTask(Project* project, const char* taskId, int isUndo) {
     if (!project || !taskId) return;
 
@@ -332,14 +340,14 @@ void deleteTask(Project* project, const char* taskId, int isUndo) {
         return;
     }
 
-    // Record task deletion before actually deleting
+    Task* parent = task->parent;
+
     if (!isUndo) {
         char description[MAX_DESC_LEN];
         snprintf(description, MAX_DESC_LEN, "Tugas '%s' (ID: %s) dihapus", task->taskName, task->taskId);
         recordChange(description, "SYSTEM", "TASK_DELETION");
     }
 
-    // If task has a parent, remove it from parent's children
     if (task->parent) {
         Task* prev = NULL;
         Task* current = task->parent->firstChild;
@@ -355,7 +363,6 @@ void deleteTask(Project* project, const char* taskId, int isUndo) {
             }
         }
     } else {
-        // Task is a root task, remove from project's root tasks
         Task* prev = NULL;
         Task* current = project->rootTasks;
         while (current && current != task) {
@@ -371,8 +378,14 @@ void deleteTask(Project* project, const char* taskId, int isUndo) {
         }
     }
 
-    // Free the task and its subtree
     deepFreeTask(task);
+
+    if (parent && parent->firstChild == NULL) {
+        if (taskCompletionQueue) {
+            enqueue(taskCompletionQueue, parent);
+            printf("Info: Tugas '%s' menjadi leaf node dan ditambahkan ke antrian penyelesaian.\n", parent->taskName);
+        }
+    }
 
     if (!isUndo) {
         printf("Tugas ID '%s' berhasil dihapus.\n", taskId);
@@ -417,10 +430,19 @@ void editTask(Task* task) {
         task->dueDate[DATE_LEN - 1] = '\0';
     }
 
-    // Record status change if status was modified
     if (oldStatus != newStatus) {
         recordTaskStatusChange(task->taskId, oldStatus, newStatus, "SYSTEM");
         recordChange("Status tugas diubah", "SYSTEM", "TASK_STATUS_CHANGE");
+    }
+
+    int isNowActive = (newStatus == TASK_STATUS_BARU || newStatus == TASK_STATUS_DALAM_PROSES);
+    int wasPreviouslyFinished = (oldStatus == TASK_STATUS_SELESAI || oldStatus == TASK_STATUS_DIBATALKAN);
+
+    if (task->firstChild == NULL && isNowActive && wasPreviouslyFinished) {
+        if (taskCompletionQueue) {
+            enqueue(taskCompletionQueue, task);
+            printf("Info: Tugas '%s' dikembalikan ke antrian penyelesaian karena statusnya diubah menjadi aktif.\n", task->taskName);
+        }
     }
 
     printf("Tugas berhasil diperbarui.\n");
@@ -561,4 +583,110 @@ void countTasksAndStatus(Task* task, int* totalTasks, int* statusCounts) {
         countTasksAndStatus(child, totalTasks, statusCounts);
         child = child->nextSibling;
     }
+}
+
+void displayCompletionQueue() {
+    if (!taskCompletionQueue || isQueueEmpty(taskCompletionQueue)) {
+        printf("\nAntrian tugas untuk diselesaikan kosong.\n");
+        return;
+    }
+
+    printf("\n--- Antrian Tugas untuk Diselesaikan (Urutan FIFO) ---\n");
+
+    Queue* tempQueue = createQueue();
+    int count = 1;
+
+    while (!isQueueEmpty(taskCompletionQueue)) {
+        Task* task = (Task*)dequeue(taskCompletionQueue);
+        if (task) {
+            printf("%d. [%s] %s\n", count++, task->taskId, task->taskName);
+            enqueue(tempQueue, task);
+        }
+    }
+
+    while (!isQueueEmpty(tempQueue)) {
+        enqueue(taskCompletionQueue, dequeue(tempQueue));
+    }
+
+    free(tempQueue);
+    printf("-------------------------------------------------------\n");
+}
+
+// task.c
+
+// task.c
+
+// GANTI DENGAN VERSI FINAL YANG PALING LENGKAP INI
+void processNextTaskInQueue() {
+    if (!taskCompletionQueue || isQueueEmpty(taskCompletionQueue)) {
+        printf("\nTidak ada tugas dalam antrian untuk diselesaikan.\n");
+        return;
+    }
+
+    // "Intip" tugas di depan antrian
+    Task* taskToProcess = (Task*)peekQueue(taskCompletionQueue);
+    if (!taskToProcess) {
+        dequeue(taskCompletionQueue); // Hapus item kosong/rusak jika ada
+        return;
+    }
+
+    // --- VERIFIKASI #1: Apakah tugas masih leaf node? ---
+    if (taskToProcess->firstChild != NULL) {
+        printf("\nInfo: Melewati tugas [%s] %s karena sudah menjadi tugas induk (bukan leaf node lagi).\n",
+               taskToProcess->taskId, taskToProcess->taskName);
+        dequeue(taskCompletionQueue); // Keluarkan dari antrian karena tidak relevan
+        processNextTaskInQueue();     // Coba proses item berikutnya
+        return;
+    }
+
+    // --- VERIFIKASI #2 (BARU): Apakah status tugas sudah selesai/dibatalkan? ---
+    if (taskToProcess->status == TASK_STATUS_SELESAI || taskToProcess->status == TASK_STATUS_DIBATALKAN) {
+        printf("\nInfo: Melewati tugas [%s] %s karena statusnya sudah '%s'.\n",
+               taskToProcess->taskId, taskToProcess->taskName, taskStatusToString[taskToProcess->status]);
+        dequeue(taskCompletionQueue); // Keluarkan dari antrian karena tidak relevan
+        processNextTaskInQueue();     // Coba proses item berikutnya
+        return;
+    }
+
+    // Jika lolos semua verifikasi, lanjutkan dengan konfirmasi pengguna
+    char input[10];
+    printf("\nAnda akan menyelesaikan tugas: [%s] %s\n", taskToProcess->taskId, taskToProcess->taskName);
+    printf("Lanjutkan? (y/n): ");
+    fgets(input, sizeof(input), stdin);
+
+    if (input[0] == 'y' || input[0] == 'Y') {
+        dequeue(taskCompletionQueue); // Proses dan keluarkan dari antrian
+
+        TaskStatus oldStatus = taskToProcess->status;
+        taskToProcess->status = TASK_STATUS_SELESAI;
+        recordTaskStatusChange(taskToProcess->taskId, oldStatus, TASK_STATUS_SELESAI, "SYSTEM");
+        
+        char changeMsg[MAX_DESC_LEN];
+        snprintf(changeMsg, MAX_DESC_LEN, "Tugas '%s' diselesaikan dari antrian.", taskToProcess->taskName);
+        recordChange(changeMsg, "SYSTEM", "TASK_COMPLETION");
+
+        printf("Berhasil! Tugas '%s' telah ditandai sebagai Selesai.\n", taskToProcess->taskName);
+    } else {
+        printf("Penyelesaian tugas dibatalkan. Tugas tetap berada di antrian.\n");
+    }
+}
+// Fungsi untuk mengisi ulang antrian dari tree setelah load data
+void repopulateCompletionQueue(Task* task) {
+    if (task == NULL) {
+        return; // Basis untuk menghentikan rekursi
+    }
+
+    // Langkah 1: Proses node yang sedang dikunjungi saat ini.
+    // Hanya jika node ini TIDAK punya anak, maka ia adalah leaf node.
+    if (task->firstChild == NULL) {
+        if (taskCompletionQueue) {
+            enqueue(taskCompletionQueue, task);
+        }
+    }
+
+    // Langkah 2: Lakukan traversal ke semua anak dari node ini.
+    repopulateCompletionQueue(task->firstChild);
+
+    // Langkah 3: Lanjutkan traversal ke semua saudara dari node ini.
+    repopulateCompletionQueue(task->nextSibling);
 }

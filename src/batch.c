@@ -9,6 +9,7 @@
 
 // Global variables
 Queue* batch_task_queue = NULL;
+extern Queue* taskCompletionQueue;
 
 void initBatchQueue() {
     if (batch_task_queue) {
@@ -20,19 +21,22 @@ void initBatchQueue() {
 void processBatchOperation(Project* project, BatchOperation* operation) {
     if (!project || !operation) return;
 
+    // Cari tugas yang sesuai berdasarkan ID yang ada di dalam data operasi
     Task* task = findTaskInProjectById(project, 
         operation->type == BATCH_DELETE ? operation->data.deleteItem.taskId :
         operation->type == BATCH_STATUS_CHANGE ? operation->data.statusChange.taskId :
         operation->type == BATCH_EDIT ? operation->data.editItem.taskId : "");
 
+    // Jika tugas tidak ditemukan, hentikan proses untuk operasi ini
     if (!task) {
         printf("Tugas tidak ditemukan.\n");
         return;
     }
 
-    // Add confirmation based on operation type
+    // Gunakan switch untuk menjalankan logika yang sesuai dengan tipe operasi
     char confirmMsg[MAX_DESC_LEN];
     switch (operation->type) {
+        
         case BATCH_DELETE:
             snprintf(confirmMsg, MAX_DESC_LEN, "Anda yakin ingin menghapus tugas '%s'?", task->taskName);
             if (!getConfirmation(confirmMsg)) {
@@ -40,24 +44,42 @@ void processBatchOperation(Project* project, BatchOperation* operation) {
                 return;
             }
             printf("Menghapus tugas: %s\n", task->taskName);
-            deleteTask(project, task->taskId, 0);
+            deleteTask(project, task->taskId, 0); // Panggil fungsi hapus tugas
             break;
 
         case BATCH_STATUS_CHANGE: {
             TaskStatus oldStatus = task->status;
+            TaskStatus newStatus = operation->data.statusChange.newStatus;
+
             snprintf(confirmMsg, MAX_DESC_LEN, "Anda yakin ingin mengubah status tugas '%s' dari %s ke %s?",
                     task->taskName, taskStatusToString[oldStatus], 
-                    taskStatusToString[operation->data.statusChange.newStatus]);
+                    taskStatusToString[newStatus]);
             if (!getConfirmation(confirmMsg)) {
                 printf("Perubahan status dibatalkan.\n");
                 return;
             }
-            task->status = operation->data.statusChange.newStatus;
+
+            task->status = newStatus; // Terapkan status baru
+
             printf("Mengubah status tugas '%s' dari %s ke %s\n",
                    task->taskName,
                    taskStatusToString[oldStatus],
                    taskStatusToString[task->status]);
             recordTaskStatusChange(task->taskId, oldStatus, task->status, "SYSTEM");
+
+            // --- BLOK LOGIKA INTEGRASI DENGAN ANTRIAN TUGAS ---
+            int isNowActive = (newStatus == TASK_STATUS_BARU || newStatus == TASK_STATUS_DALAM_PROSES);
+            int wasPreviouslyFinished = (oldStatus == TASK_STATUS_SELESAI || oldStatus == TASK_STATUS_DIBATALKAN);
+
+            if (task->firstChild == NULL && isNowActive && wasPreviouslyFinished) {
+                // Jika ini adalah leaf node yang "dihidupkan kembali",
+                // masukkan lagi ke dalam antrian penyelesaian.
+                if (taskCompletionQueue) {
+                    enqueue(taskCompletionQueue, task);
+                    printf("Info: Tugas '%s' dikembalikan ke antrian penyelesaian.\n", task->taskName);
+                }
+            }
+            // --- AKHIR BLOK INTEGRASI ---
             break;
         }
 
@@ -67,6 +89,7 @@ void processBatchOperation(Project* project, BatchOperation* operation) {
                 printf("Perubahan detail dibatalkan.\n");
                 return;
             }
+            // Terapkan perubahan pada nama, deskripsi, dan tenggat jika ada isinya
             if (strlen(operation->data.editItem.taskName) > 0) {
                 strncpy(task->taskName, operation->data.editItem.taskName, MAX_NAME_LEN - 1);
             }

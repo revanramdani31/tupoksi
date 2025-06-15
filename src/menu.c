@@ -17,7 +17,7 @@ void displayMainMenu() {
     printf("+================================================+\n");
     printf("| 1. Proyek                                       |\n");
     printf("| 2. Tugas                                        |\n");
-    printf("| 3. Laporan                                      |\n");
+    printf("| 3. Undo tambah tugas                            |\n");
     printf("| 4. Batch                                        |\n");
     printf("| 5. File                                         |\n");
     printf("| 6. Logs                                         |\n");
@@ -50,22 +50,13 @@ void displayTaskMenu() {
     printf("| 3. Edit Tugas                                  |\n");
     printf("| 4. Hapus Tugas                                 |\n");
     printf("| 5. Cari Tugas                                  |\n");
+    printf("| 6. Lihat Antrian Tugas Siap Dikerjakan         |\n");
+    printf("| 7. Selesaikan Tugas Berikutnya dari Antrian    |\n");
     printf("| 0. Kembali                                     |\n");
     printf("+================================================+\n");
     printf("Pilihan: ");
 }
 
-void displayReportMenu() {
-    printf("\n");
-    printf("+================================================+\n");
-    printf("|                MENU LAPORAN                     |\n");
-    printf("+================================================+\n");
-    printf("| 1. Lihat Tugas Berdasarkan Status              |\n");
-    printf("| 2. Lihat Tugas yang Akan Datang                |\n");
-    printf("| 0. Kembali                                     |\n");
-    printf("+================================================+\n");
-    printf("Pilihan: ");
-}
 
 void displayLogMenu() {
     printf("\n");
@@ -75,8 +66,7 @@ void displayLogMenu() {
     printf("| 1. Lihat Riwayat Tugas                         |\n");
     printf("| 2. Analisis Status Tugas                       |\n");
     printf("| 3. Lihat Log Perubahan                         |\n");
-    printf("| 4. Cari Log                                    |\n");
-    printf("| 5. Export Log ke CSV                           |\n");
+    printf("| 4. Export Log ke CSV                           |\n");
     printf("| 0. Kembali                                     |\n");
     printf("+================================================+\n");
     printf("Pilihan: ");
@@ -293,7 +283,12 @@ void handleTaskMenu() {
                 displayTasksBySearchTerm(project->rootTasks, name, 0, &count);
                 printf("\nTotal %d tugas ditemukan.\n", count);
                 break;
-
+            case 6:
+            	displayCompletionQueue();
+            	break;
+        	case 7: // <-- TAMBAHKAN CASE BARU
+           	 processNextTaskInQueue();
+            	break;
             case 0:
                 return;
 
@@ -303,66 +298,6 @@ void handleTaskMenu() {
     } while (1);
 }
 
-void handleReportMenu() {
-    int choice;
-    char projectId[MAX_ID_LEN];
-    Project* project;
-    int count;
-
-    do {
-        displayReportMenu();
-        scanf("%d", &choice);
-        clearBuffer();
-
-        switch (choice) {
-            case 1:
-                printf("Masukkan ID proyek: ");
-                fgets(projectId, MAX_ID_LEN, stdin);
-                projectId[strcspn(projectId, "\n")] = 0;
-                project = findProjectById(projectId);
-                if (!project) {
-                    printf("Proyek tidak ditemukan.\n");
-                    break;
-                }
-
-                printf("\nPilih status tugas:\n");
-                for (int i = 0; i < TASK_STATUS_COUNT; i++) {
-                    printf("%d. %s\n", i + 1, taskStatusToString[i]);
-                }
-                printf("Pilihan: ");
-                int statusChoice;
-                scanf("%d", &statusChoice);
-                while(getchar() != '\n');
-                if (statusChoice > 0 && statusChoice <= TASK_STATUS_COUNT) {
-                    count = 0;
-                    displayTasksByStatus(project->rootTasks, statusChoice - 1, 0, &count);
-                    printf("\nTotal %d tugas dengan status %s.\n", 
-                           count, taskStatusToString[statusChoice - 1]);
-                } else {
-                    printf("Pilihan status tidak valid.\n");
-                }
-                break;
-
-            case 2:
-                printf("Masukkan ID proyek: ");
-                fgets(projectId, MAX_ID_LEN, stdin);
-                projectId[strcspn(projectId, "\n")] = 0;
-                project = findProjectById(projectId);
-                if (project) {
-                    displayUpcomingTasks(project);
-                } else {
-                    printf("Proyek tidak ditemukan.\n");
-                }
-                break;
-
-            case 0:
-                return;
-
-            default:
-                printf("Pilihan tidak valid.\n");
-        }
-    } while (1);
-}
 
 void handleLogMenu() {
     int choice;
@@ -393,14 +328,6 @@ void handleLogMenu() {
                 break;
 
             case 4:
-                printf("Masukkan kata kunci pencarian: ");
-                char searchTerm[MAX_NAME_LEN];
-                fgets(searchTerm, MAX_NAME_LEN, stdin);
-                searchTerm[strcspn(searchTerm, "\n")] = 0;
-                searchChangeLog(searchTerm);
-                break;
-
-            case 5:
                 exportChangeLogToCSV();
                 break;
 
@@ -537,7 +464,7 @@ void runMainMenu() {
                 handleTaskMenu();
                 break;
             case 3:
-                handleReportMenu();
+                handleUndo();
                 break;
             case 4:
                 handleBatchMenu();

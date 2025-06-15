@@ -26,6 +26,7 @@ void saveTasksOfProject(FILE* file_ptr, Task* task) {
 }
 
 void saveDataToFile(const char* filename) {
+	int i;
     char filepath[256];
     snprintf(filepath, sizeof(filepath), "data/%s", filename);
     
@@ -35,7 +36,7 @@ void saveDataToFile(const char* filename) {
         return;
     }
     
-    for (int i = 0; i < projectCount; i++) {
+    for (i = 0; i < projectCount; i++) { 
         Project* project = projects[i];
         fprintf(fp, "P,%s,%s\n", project->projectId, project->projectName);
         
@@ -52,10 +53,11 @@ void saveDataToFile(const char* filename) {
 }
 
 void buildTaskHierarchyForProject(Project* project, Task** all_tasks, int task_count) {
+	int i,j;
     if (!project || !all_tasks || task_count == 0) return;
     
     // First pass: Set up parent-child relationships
-    for (int i = 0; i < task_count; i++) {
+    for (i = 0; i < task_count; i++) { 
         Task* task = all_tasks[i];
         if (strlen(task->parentTaskId) == 0 || strcmp(task->parentTaskId, "NULL") == 0) {
             // This is a root task
@@ -71,7 +73,7 @@ void buildTaskHierarchyForProject(Project* project, Task** all_tasks, int task_c
         } else {
             // Find parent task
             Task* parentTask = NULL;
-            for (int j = 0; j < task_count; j++) {
+            for (j = 0; j < task_count; j++) {
                 if (strcmp(all_tasks[j]->taskId, task->parentTaskId) == 0) {
                     parentTask = all_tasks[j];
                     break;
@@ -108,6 +110,7 @@ void buildTaskHierarchyForProject(Project* project, Task** all_tasks, int task_c
 }
 
 void loadDataFromFile(const char* filename) {
+	int i;
     char filepath[256];
     snprintf(filepath, sizeof(filepath), "data/%s", filename);
     
@@ -123,6 +126,11 @@ void loadDataFromFile(const char* filename) {
     int task_count = 0;
     int task_capacity = 10;
     
+    if (current_loading_project && task_count > 0) {
+        buildTaskHierarchyForProject(current_loading_project, temp_tasks, task_count);
+        printf("Mempopulasi ulang antrian tugas...\n");
+        repopulateCompletionQueue(current_loading_project->rootTasks);
+    }
     // Initialize temporary task array
     temp_tasks = (Task**)malloc(sizeof(Task*) * task_capacity);
     if (!temp_tasks) {
@@ -140,7 +148,7 @@ void loadDataFromFile(const char* filename) {
             if (current_loading_project && task_count > 0) {
                 buildTaskHierarchyForProject(current_loading_project, temp_tasks, task_count);
                 // Reset task array
-                for (int i = 0; i < task_count; i++) {
+                for (i = 0; i < task_count; i++) {
                     temp_tasks[i] = NULL;
                 }
                 task_count = 0;
@@ -211,4 +219,4 @@ void loadDataFromFile(const char* filename) {
     free(temp_tasks);
     fclose(fp);
     printf("Data dimuat dari %s.\n", filepath);
-} 
+}

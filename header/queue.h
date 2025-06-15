@@ -21,6 +21,7 @@ void enqueue(Queue* q, void* data);
 void* dequeue(Queue* q);
 int isQueueEmpty(Queue* q);
 void freeQueue(Queue* q);
+void* peekQueue(Queue* q);
 
 // Batch-specific operations
 void enqueueBatchItem(Queue* q, BatchDeleteItem* item);
